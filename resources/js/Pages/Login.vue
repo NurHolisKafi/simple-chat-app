@@ -29,7 +29,6 @@ let form = ref({
 const postData = async () => {
     try {
         isLoading.value = true;
-        await axios.get("/sanctum/csrf-cookie");
         const response = await axios.post("/api/user/auth", form.value, {
             headers: {
                 Accept: "application/json",

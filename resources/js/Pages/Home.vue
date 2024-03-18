@@ -1,24 +1,41 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch, inject } from "vue";
 import userStore from "../store/UserStore.js";
 import { useRouter } from "vue-router";
+import Swal from "sweetalert2";
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/css/index.css";
-import Swal from "sweetalert2";
 
-const isloading = ref(false);
+const pageloading = ref(false);
 const router = useRouter();
 const store = userStore();
 const authUser = ref({});
-const selectedPerson = ref({});
+const selectedPerson = ref({
+    data: {},
+    message: [],
+    isloading: false,
+});
 const listPerson = ref({
     data: [],
-    message: [],
     choose: false,
 });
 
+watch(
+    () => selectedPerson.value.data,
+    async (newValue) => {
+        try {
+            selectedPerson.value.isloading = true;
+            selectedPerson.value.message = await store.getMessages(newValue.id);
+            console.log(selectedPerson.value.data);
+        } finally {
+            selectedPerson.value.isloading = false;
+        }
+    },
+    { deep: true }
+);
+
 const viewPerson = (data) => {
-    selectedPerson.value = data;
+    selectedPerson.value.data = data;
     if (!listPerson.value.choose) {
         listPerson.value.choose = true;
     }
@@ -45,10 +62,10 @@ const logout = () => {
 
 onMounted(async () => {
     try {
-        isloading.value = true;
+        pageloading.value = true;
         authUser.value = await store.getUser();
         listPerson.value.data = await store.getListPerson();
-        window.Echo.channel("My-app.", authUser.value.id).listen(
+        window.Echo.channel("My-app." + authUser.value.id).listen(
             ".my-app",
             function (data) {
                 alert(data.message);
@@ -57,23 +74,22 @@ onMounted(async () => {
     } catch (err) {
         console.log(err);
     } finally {
-        isloading.value = false;
+        pageloading.value = false;
     }
 });
 </script>
 
 <template>
-    <div v-if="isloading" class="vl-parent">
+    <div v-if="pageloading" class="vl-parent">
         <loading
-            :active="isloading"
-            is-full-page="fullPage"
-            height="70"
-            width="70"
-            loader="bars"
+            :active="pageloading"
+            :is-full-page="true"
+            :height="70"
+            :width="70"
+            loader="dots"
             color="#A077FF"
         />
     </div>
-
     <div class="container" v-else>
         <div class="row justify-content-between mb-2">
             <div class="col-3">
@@ -131,23 +147,40 @@ onMounted(async () => {
                                 >
                                     <a href="javascript:void(0);">
                                         <img
-                                            :src="selectedPerson.avatar"
+                                            :src="selectedPerson.data.avatar"
                                             alt="avatar"
                                         />
                                     </a>
                                     <div class="chat-about">
                                         <h6 class="m-b-0">
-                                            {{ selectedPerson.name }}
+                                            {{ selectedPerson.data.name }}
                                         </h6>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="chat-history" style="min-height: 70vh">
-                            <div
-                                v-if="
+                        <div
+                            class="chat-history vl-parent"
+                            style="height: 72vh; box-sizing: border-box"
+                            :class="{
+                                scroll:
                                     listPerson.choose &&
-                                    listPerson.message.length > 0
+                                    selectedPerson.message.length > 0,
+                            }"
+                        >
+                            <loading
+                                v-if="selectedPerson.isloading"
+                                :active="selectedPerson.isloading"
+                                :is-full-page="false"
+                                height="70"
+                                width="70"
+                                loader="spinner"
+                                color="#A077FF"
+                            />
+                            <div
+                                v-else-if="
+                                    listPerson.choose &&
+                                    selectedPerson.message.length > 0
                                 "
                             >
                                 <ul class="m-b-0">
@@ -190,26 +223,25 @@ onMounted(async () => {
                             <div
                                 v-else-if="
                                     listPerson.choose &&
-                                    listPerson.message.length == 0
+                                    selectedPerson.message.length == 0
                                 "
                                 class="text-center"
                                 style="
                                     position: absolute;
                                     bottom: 50%;
-                                    left: 55%;
+                                    left: 40%;
                                 "
                             >
                                 <h5>Send a Massage</h5>
                             </div>
                             <div
-                                class="d-flex justify-content-center align-items-center"
-                                style="height: 70vh"
+                                style="position: absolute; left: 50%; top: 50%"
                                 v-else="listPerson.choose"
                             >
                                 <h4>Welcome to Chat App</h4>
                             </div>
                         </div>
-                        <div class="chat-message clearfix">
+                        <div class="px-3 py-3">
                             <div
                                 class="input-group mb-0"
                                 v-show="listPerson.choose"
@@ -232,3 +264,10 @@ onMounted(async () => {
         </div>
     </div>
 </template>
+
+<style scoped>
+.scroll {
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+</style>

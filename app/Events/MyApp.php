@@ -34,7 +34,7 @@ class MyApp implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('My-app.' . $this->id);
+        return new Channel('My-app.' . $this->id);
     }
 
     public function broadcastAs()

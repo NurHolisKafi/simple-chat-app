@@ -24,6 +24,7 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => Hash::make('123'), // password
             'remember_token' => Str::random(10),
+            'avatar' => 'https://bootdey.com/img/Content/avatar/' . fake()->randomElement(['avatar1.png', 'avatar2.png', 'avatar3.png', 'avatar4.png', 'avatar5.png'])
         ];
     }
 

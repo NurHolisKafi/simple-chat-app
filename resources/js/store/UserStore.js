@@ -19,7 +19,7 @@ const userStore = defineStore("auth", {
                 return null;
             }
         },
-        async getListPerson(id) {
+        async getListPerson() {
             if (this.token) {
                 const response = await axios.get("/api/persons/", {
                     headers: {
@@ -28,6 +28,20 @@ const userStore = defineStore("auth", {
                 });
 
                 return response.data.data;
+            } else {
+                return null;
+            }
+        },
+
+        async getMessages(to) {
+            if (this.token) {
+                const response = await axios.get(`/api/messages/${to}`, {
+                    headers: {
+                        Authorization: `Bearer ${this.token}`,
+                    },
+                });
+
+                return response.data;
             } else {
                 return null;
             }

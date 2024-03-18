@@ -15,6 +15,11 @@ const routes = [
         component: () => import("../Pages/Login.vue"),
         meta: { middleware: CanLoggedIn },
     },
+    {
+        path: "/test",
+        name: "test",
+        component: () => import("../Pages/Test.vue"),
+    },
 ];
 
 const router = createRouter({
