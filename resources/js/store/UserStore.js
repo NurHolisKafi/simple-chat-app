@@ -33,9 +33,23 @@ const userStore = defineStore("auth", {
             }
         },
 
-        async getMessages(to) {
+        async getMessages(from) {
             if (this.token) {
-                const response = await axios.get(`/api/messages/${to}`, {
+                const response = await axios.get(`/api/messages/${from}`, {
+                    headers: {
+                        Authorization: `Bearer ${this.token}`,
+                    },
+                });
+
+                return response.data;
+            } else {
+                return null;
+            }
+        },
+
+        async sendMessages(body) {
+            if (this.token) {
+                const response = await axios.post(`/api/send/`, body, {
                     headers: {
                         Authorization: `Bearer ${this.token}`,
                     },

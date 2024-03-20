@@ -23,6 +23,7 @@ import Echo from "laravel-echo";
 import Pusher from "pusher-js";
 window.Pusher = Pusher;
 
+const token = localStorage.getItem("token");
 window.Echo = new Echo({
     broadcaster: "pusher",
     key: import.meta.env.VITE_PUSHER_APP_KEY,
@@ -32,4 +33,33 @@ window.Echo = new Echo({
     // wssPort: import.meta.env.VITE_PUSHER_PORT ?? 443,
     forceTLS: (import.meta.env.VITE_PUSHER_SCHEME ?? "https") === "https",
     // enabledTransports: ['ws', 'wss'],
+    // csrfToken: document
+    //     .querySelector('meta[name="csrf-token"]')
+    //     .getAttribute("content"),
+    authorizer: (channel) => {
+        return {
+            authorize: (socketId, callback) => {
+                axios
+                    .post(
+                        "/api/broadcasting/auth",
+                        {
+                            socket_id: socketId,
+                            channel_name: channel.name,
+                        },
+                        {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                Accept: "application/json",
+                            },
+                        }
+                    )
+                    .then((response) => {
+                        callback(null, response.data);
+                    })
+                    .catch((error) => {
+                        callback(error);
+                    });
+            },
+        };
+    },
 });

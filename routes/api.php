@@ -3,6 +3,7 @@
 use App\Http\Controllers\UserController;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,12 +28,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/logout', [UserController::class, 'logout']);
     Route::post('/send', [UserController::class, 'sendMessage']);
     Route::get('/messages/{to}', [UserController::class, 'getMessages']);
+    Broadcast::routes();
 });
-
-// Route::get('test', function () {
-//     $data = User::orderBy('created_at')->get();
-//     // $time = $data->created_at->format('H:i');
-//     return response([
-//         $data
-//     ]);
-// });

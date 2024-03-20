@@ -5,8 +5,12 @@ import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/css/index.css";
+import { DateTime } from "luxon";
 
 const pageloading = ref(false);
+const form = ref({
+    message: "",
+});
 const router = useRouter();
 const store = userStore();
 const authUser = ref({});
@@ -26,7 +30,7 @@ watch(
         try {
             selectedPerson.value.isloading = true;
             selectedPerson.value.message = await store.getMessages(newValue.id);
-            console.log(selectedPerson.value.data);
+            console.log(selectedPerson.value.message);
         } finally {
             selectedPerson.value.isloading = false;
         }
@@ -34,11 +38,43 @@ watch(
     { deep: true }
 );
 
+const time = (data) => {
+    let sekarang = DateTime.fromFormat(data, "yyyy-MM-dd HH:mm:ss").setLocale(
+        "id"
+    );
+
+    // Format waktu sesuai dengan format yang diinginkan
+    const waktuFormat = sekarang.toLocaleString({
+        hour: "numeric",
+        minute: "2-digit",
+        day: "numeric",
+        month: "long",
+    });
+    const newFormat = waktuFormat.replace("pukul", "");
+
+    return newFormat;
+};
+
 const viewPerson = (data) => {
     selectedPerson.value.data = data;
     if (!listPerson.value.choose) {
         listPerson.value.choose = true;
     }
+};
+
+const sendMessage = () => {
+    let body = {
+        user1: authUser.value.id,
+        user2: selectedPerson.value.data.id,
+        message: form.value.message,
+        time: DateTime.now().toFormat("yyyy-MM-dd HH:mm:ss"),
+    };
+    selectedPerson.value.message.push(body);
+    form.value.message = "";
+    store
+        .sendMessages(body)
+        .then((response) => console.log(response))
+        .catch((err) => console.log(err));
 };
 
 const logout = () => {
@@ -59,16 +95,21 @@ const logout = () => {
         }
     });
 };
-
+const reload = () => {
+    if (window.token != localStorage.getItem("token")) {
+        router.go();
+    }
+};
 onMounted(async () => {
+    reload();
     try {
         pageloading.value = true;
         authUser.value = await store.getUser();
         listPerson.value.data = await store.getListPerson();
-        window.Echo.channel("My-app." + authUser.value.id).listen(
+        window.Echo.private("My-app." + authUser.value.id).listen(
             ".my-app",
             function (data) {
-                alert(data.message);
+                selectedPerson.value.message.push(data);
             }
         );
     } catch (err) {
@@ -184,7 +225,34 @@ onMounted(async () => {
                                 "
                             >
                                 <ul class="m-b-0">
-                                    <li class="clearfix">
+                                    <li
+                                        class="clearfix"
+                                        v-for="data in selectedPerson.message"
+                                    >
+                                        <div
+                                            class="message-data"
+                                            :class="{
+                                                'text-right':
+                                                    data.user2 == authUser.id,
+                                            }"
+                                        >
+                                            <span class="message-data-time">{{
+                                                time(data.time)
+                                            }}</span>
+                                        </div>
+                                        <div
+                                            class="message"
+                                            :class="{
+                                                'float-right other-message':
+                                                    data.user2 == authUser.id,
+                                                'my-message':
+                                                    data.user2 != authUser.id,
+                                            }"
+                                        >
+                                            {{ data.message }}
+                                        </div>
+                                    </li>
+                                    <!-- <li class="clearfix">
                                         <div class="message-data text-right">
                                             <span class="message-data-time"
                                                 >10:10 AM, Today</span
@@ -206,18 +274,7 @@ onMounted(async () => {
                                         <div class="message my-message">
                                             Are we meeting today?
                                         </div>
-                                    </li>
-                                    <li class="clearfix">
-                                        <div class="message-data">
-                                            <span class="message-data-time"
-                                                >10:15 AM, Today</span
-                                            >
-                                        </div>
-                                        <div class="message my-message">
-                                            Project has been already finished
-                                            and I have results to show you.
-                                        </div>
-                                    </li>
+                                    </li> -->
                                 </ul>
                             </div>
                             <div
@@ -235,28 +292,31 @@ onMounted(async () => {
                                 <h5>Send a Massage</h5>
                             </div>
                             <div
-                                style="position: absolute; left: 50%; top: 50%"
+                                style="position: absolute; left: 35%; top: 50%"
                                 v-else="listPerson.choose"
                             >
                                 <h4>Welcome to Chat App</h4>
                             </div>
                         </div>
                         <div class="px-3 py-3">
-                            <div
-                                class="input-group mb-0"
-                                v-show="listPerson.choose"
-                            >
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"
-                                        ><i class="fa fa-send"></i
-                                    ></span>
+                            <form @submit.prevent="sendMessage">
+                                <div
+                                    class="input-group mb-0"
+                                    v-show="listPerson.choose"
+                                >
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"
+                                            ><i class="fa fa-send"></i
+                                        ></span>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        v-model="form.message"
+                                        class="form-control shadow-none"
+                                        placeholder="Enter text here..."
+                                    />
                                 </div>
-                                <input
-                                    type="text"
-                                    class="form-control shadow-none"
-                                    placeholder="Enter text here..."
-                                />
-                            </div>
+                            </form>
                         </div>
                     </div>
                 </div>

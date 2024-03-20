@@ -40,6 +40,7 @@ const postData = async () => {
         });
         localStorage.setItem("auth", true);
         localStorage.setItem("token", response.data.token);
+        console.log(Window.Echo);
         alert("success", "Berhasil", "Login Berhasil", "/");
     } catch (error) {
         console.log(error);

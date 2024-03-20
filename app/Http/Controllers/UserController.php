@@ -7,8 +7,6 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Message;
 use App\Models\User;
-use DateTime;
-use DateTimeZone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -46,22 +44,27 @@ class UserController extends Controller
 
     function sendMessage(Request $request)
     {
-        broadcast(new MyApp($request->message, $request->user()->id))->toOthers();
-        return response([
-            'message' => 'Send Successfully'
-        ],);
+        broadcast(new MyApp($request->all()))->toOthers();
+        Message::create([
+            'id_user1' => $request->user1,
+            'id_user2' => $request->user2,
+            'message' => $request->message,
+            'created_at' => $request->time,
+            'updated_at' => $request->time
+        ]);
+        return response(['success' => 'Message Send Succesfully']);
     }
 
-    function getMessages(Request $request, $to)
+    function getMessages(Request $request, $from)
     {
         $messages =
-            Message::where(function ($query) use ($request, $to) {
+            Message::where(function ($query) use ($request, $from) {
                 $query->where('id_user1', $request->user()->id)
-                    ->where('id_user2', $to);
-            })->orWhere(function ($query) use ($request, $to) {
-                $query->where('id_user1', $to)
+                    ->where('id_user2', $from);
+            })->orWhere(function ($query) use ($request, $from) {
+                $query->where('id_user1', $from)
                     ->where('id_user2', $request->user()->id);
-            })->select('id_user1 as from', 'message', 'created_at as time')->orderBy('created_at')->get();
+            })->select('id_user2 as user1', 'id_user2 as user2', 'message', 'created_at as time')->orderBy('created_at')->get();
         $newFormat = $messages->map(function ($data) {
             return $data;
         });

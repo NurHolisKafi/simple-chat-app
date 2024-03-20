@@ -11,6 +11,7 @@
       rel="stylesheet"
     />
     @vite(['resources/js/app.js'])
+    {{-- <meta name="csrf-token" content="{{ csrf_token() }}"> --}}
 </head>
 <body id="app">
     {{-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.bundle.min.js"></script> --}}

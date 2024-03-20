@@ -14,17 +14,16 @@ class MyApp implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $message, $id;
+    public $data;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($message, $id)
+    public function __construct($data)
     {
         //
-        $this->message = $message;
-        $this->id = $id;
+        $this->data = $data;
     }
 
     /**
@@ -34,11 +33,21 @@ class MyApp implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new Channel('My-app.' . $this->id);
+        return new PrivateChannel('My-app.' . $this->data["user2"]);
     }
 
     public function broadcastAs()
     {
         return 'my-app';
+    }
+
+    public function broadcastWith()
+    {
+        return [
+            'user1' => $this->data["user1"],
+            'user2' => $this->data["user2"],
+            'message' => $this->data["message"],
+            'time' => $this->data["time"]
+        ];
     }
 }
