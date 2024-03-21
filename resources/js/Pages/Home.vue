@@ -30,7 +30,6 @@ watch(
         try {
             selectedPerson.value.isloading = true;
             selectedPerson.value.message = await store.getMessages(newValue.id);
-            console.log(selectedPerson.value.message);
         } finally {
             selectedPerson.value.isloading = false;
         }
@@ -89,19 +88,14 @@ const logout = () => {
         reverseButtons: true,
     }).then((result) => {
         if (result.isConfirmed) {
-            store.logout().then(() => {
+            store.logout(authUser.value.id).then(() => {
                 router.push({ name: "login" });
             });
         }
     });
 };
-const reload = () => {
-    if (window.token != localStorage.getItem("token")) {
-        router.go();
-    }
-};
+
 onMounted(async () => {
-    reload();
     try {
         pageloading.value = true;
         authUser.value = await store.getUser();
@@ -252,29 +246,6 @@ onMounted(async () => {
                                             {{ data.message }}
                                         </div>
                                     </li>
-                                    <!-- <li class="clearfix">
-                                        <div class="message-data text-right">
-                                            <span class="message-data-time"
-                                                >10:10 AM, Today</span
-                                            >
-                                        </div>
-                                        <div
-                                            class="message other-message float-right"
-                                        >
-                                            Hi Aiden, how are you? How is the
-                                            project coming along?
-                                        </div>
-                                    </li>
-                                    <li class="clearfix">
-                                        <div class="message-data">
-                                            <span class="message-data-time"
-                                                >10:12 AM, Today</span
-                                            >
-                                        </div>
-                                        <div class="message my-message">
-                                            Are we meeting today?
-                                        </div>
-                                    </li> -->
                                 </ul>
                             </div>
                             <div

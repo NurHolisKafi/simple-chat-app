@@ -24,6 +24,7 @@ import Pusher from "pusher-js";
 window.Pusher = Pusher;
 
 const token = localStorage.getItem("token");
+
 window.Echo = new Echo({
     broadcaster: "pusher",
     key: import.meta.env.VITE_PUSHER_APP_KEY,

@@ -40,7 +40,9 @@ const postData = async () => {
         });
         localStorage.setItem("auth", true);
         localStorage.setItem("token", response.data.token);
-        console.log(Window.Echo);
+        Echo.connector.options.auth.headers.Authorization = `Bearer ${localStorage.getItem(
+            "token"
+        )}`;
         alert("success", "Berhasil", "Login Berhasil", "/");
     } catch (error) {
         console.log(error);

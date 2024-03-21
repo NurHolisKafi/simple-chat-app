@@ -61,7 +61,7 @@ const userStore = defineStore("auth", {
             }
         },
 
-        async logout() {
+        async logout(id) {
             try {
                 await axios.get("/api/logout", {
                     headers: {
@@ -74,6 +74,7 @@ const userStore = defineStore("auth", {
                     auth: false,
                     token: null,
                 });
+                window.Echo.leaveChannel(`My-app.${id}`);
             } catch (err) {
                 console.log(err);
             }
