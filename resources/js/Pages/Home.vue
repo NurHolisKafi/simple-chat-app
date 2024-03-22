@@ -96,6 +96,7 @@ const logout = () => {
 };
 
 onMounted(async () => {
+    window.token != localStorage.getItem("token") ? location.reload() : null;
     try {
         pageloading.value = true;
         authUser.value = await store.getUser();
